@@ -10,9 +10,9 @@ export function TokenRow({ token, onRevoke, busy = false }: { token: ProjectToke
   return (
     <div className="flex flex-wrap items-center gap-3 py-3">
       <KeyRound aria-hidden className={cn('h-4 w-4 shrink-0', revoked ? 'text-fg-subtle' : 'text-fg-muted')} />
-      <div className={cn('min-w-0 flex-1', revoked && 'opacity-60')}>
+      <div className={cn('min-w-[9rem] flex-1', revoked && 'opacity-60')}>
         <p className="truncate text-sm font-medium text-fg">{token.label ?? 'Untitled token'}</p>
-        <p className="font-mono text-xs text-fg-subtle">{token.token_prefix}…</p>
+        <p className="truncate font-mono text-xs text-fg-subtle">{token.token_prefix}…</p>
       </div>
       <div className="font-mono text-[11px] text-fg-subtle">
         <RelativeTime iso={token.created_at} prefix="created" className="block" />

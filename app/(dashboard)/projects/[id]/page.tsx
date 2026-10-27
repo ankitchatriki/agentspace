@@ -60,7 +60,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const loadTokens = useCallback(async () => {
     const { data, error } = await supabase
       .from('project_tokens')
-      .select('*')
+      .select('id, team_id, project_id, label, token_prefix, created_by, created_at, last_used_at, revoked_at')
       .eq('project_id', id)
       .order('created_at', { ascending: false });
     if (error) setTokensError(error.message);

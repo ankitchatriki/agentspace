@@ -290,18 +290,26 @@ create policy github_events_select on public.github_events for select to authent
 create policy requests_select on public.requests for select to authenticated
   using (public.is_team_member(team_id));
 create policy requests_answer on public.requests for update to authenticated
-  using (public.is_team_member(team_id) and status = 'open')
+  using (public.is_team_member(team_id) and status = 'open' and expires_at > now())
   with check (public.is_team_member(team_id) and status in ('answered','cancelled') and answered_by = auth.uid());
 
 -- ---------- grants ----------
 revoke all on all tables in schema public from anon;
 grant select on public.profiles, public.teams, public.team_members, public.projects,
-               public.project_tokens, public.agents, public.events, public.requests,
+               public.agents, public.events, public.requests,
                public.github_events to authenticated;
+-- token_hash is never readable by clients
+revoke select on public.project_tokens from authenticated;
+grant select (id, team_id, project_id, label, token_prefix, created_by, created_at, last_used_at, revoked_at)
+  on public.project_tokens to authenticated;
+-- Supabase's default privileges grant table-wide UPDATE; revoke it so the column lists below are what applies
+revoke update on public.profiles, public.teams, public.projects from authenticated;
 grant update (display_name, avatar_url) on public.profiles to authenticated;
 grant update (name) on public.teams to authenticated;
 grant delete on public.team_members to authenticated;
-grant insert, update, delete on public.projects to authenticated;
+-- members may not move a project to another team or flip server-managed columns
+grant insert, delete on public.projects to authenticated;
+grant update (name, description, repo_full_name) on public.projects to authenticated;
 revoke insert, update, delete on public.requests from authenticated;
 grant update (status, answer, answered_by, answered_at) on public.requests to authenticated;
 revoke all on public.project_secrets from authenticated;

@@ -17,7 +17,7 @@ export function DashboardShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname() ?? '/';
-  const { requests, count } = useOpenRequests();
+  const { requests, count, loading: requestsLoading } = useOpenRequests();
   const { agents } = useAgents();
   const attention = useMemo(() => agents.filter(needsTerminalAttention).length, [agents]);
   const badge = count + attention;
@@ -48,6 +48,8 @@ export function DashboardShell({
   // Optional browser notifications for new requests.
   const seen = useRef<Set<string> | null>(null);
   useEffect(() => {
+    if (requestsLoading) return;
+    // Seed with what already exists once loaded, so only requests arriving later notify.
     if (seen.current === null) {
       seen.current = new Set(requests.map((r) => r.id));
       return;
@@ -63,7 +65,7 @@ export function DashboardShell({
         /* ignore */
       }
     }
-  }, [requests]);
+  }, [requests, requestsLoading]);
   useEffect(() => {
     try {
       if (typeof Notification !== 'undefined' && Notification.permission === 'default') {

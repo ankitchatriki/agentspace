@@ -17,6 +17,7 @@ export default function ConnectPage({ params }: { params: Promise<{ id: string }
 
   const [label, setLabel] = useState('');
   const [token, setToken] = useState<string | null>(null);
+  const [tokenCreatedAt, setTokenCreatedAt] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [snippet, setSnippet] = useState<string | null>(null);
@@ -37,7 +38,9 @@ export default function ConnectPage({ params }: { params: Promise<{ id: string }
   }, []);
 
   const commands = useMemo(() => (token && appUrl ? buildInstallCommands(appUrl, token) : ''), [token, appUrl]);
-  const connected = agents.length > 0;
+  // Only events after this token was created count, so existing agents from teammates don't fake success.
+  const connected =
+    tokenCreatedAt !== null && agents.some((a) => new Date(a.last_event_at).getTime() >= tokenCreatedAt);
 
   async function create() {
     setBusy(true);
@@ -45,6 +48,7 @@ export default function ConnectPage({ params }: { params: Promise<{ id: string }
     try {
       const res = await api.createToken(id, label.trim() || undefined);
       setToken(res.token);
+      setTokenCreatedAt(new Date(res.token_meta.created_at).getTime());
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not create token');
     } finally {
