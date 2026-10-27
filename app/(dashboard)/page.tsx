@@ -11,7 +11,7 @@ import {
   RequestCard,
   SegmentedControl,
   Select,
-  StatTile,
+  StatCard,
 } from '@/components/ui';
 import { useAgents } from '@/lib/hooks/useAgents';
 import { useOpenRequests } from '@/lib/hooks/useRequests';
@@ -80,10 +80,10 @@ export default function OverviewPage() {
           Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)
         ) : (
           <>
-            <StatTile label="Active agents" value={activeAgents} tone="running" />
-            <StatTile label="Waiting on human" value={waiting + 0} tone="waiting" hint={`${openCount} open request${openCount === 1 ? '' : 's'}`} />
-            <StatTile label="Events, last hour" value={kpi(eventsLastHour)} tone="idle" />
-            <StatTile label="Open PRs" value={kpi(openPrs)} />
+            <StatCard label="Active agents" value={activeAgents} tone="running" />
+            <StatCard label="Waiting on human" value={waiting + 0} tone="waiting" hint={`${openCount} open request${openCount === 1 ? '' : 's'}`} />
+            <StatCard label="Events, last hour" value={kpi(eventsLastHour)} tone="idle" />
+            <StatCard label="Open PRs" value={kpi(openPrs)} />
           </>
         )}
       </div>

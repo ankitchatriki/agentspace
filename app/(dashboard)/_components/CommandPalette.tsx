@@ -14,31 +14,14 @@ interface Item {
   href: string;
 }
 
-export function CommandPalette() {
+export function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
   const { projects } = useProjects();
   const { agents } = useAgents();
   const { requests } = useOpenRequests();
-  const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setOpen((o) => !o);
-      } else if (e.key === 'Escape') setOpen(false);
-    };
-    const onOpen = () => setOpen(true);
-    window.addEventListener('keydown', onKey);
-    window.addEventListener('agentspace:palette', onOpen);
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      window.removeEventListener('agentspace:palette', onOpen);
-    };
-  }, []);
 
   useEffect(() => {
     if (open) {
@@ -79,14 +62,14 @@ export function CommandPalette() {
 
   function go(item: Item | undefined) {
     if (!item) return;
-    setOpen(false);
+    onClose();
     router.push(item.href);
   }
 
   if (!open) return null;
   let lastGroup = '';
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center bg-canvas/70 px-4 pt-[15vh] backdrop-blur-sm" onMouseDown={() => setOpen(false)}>
+    <div className="fixed inset-0 z-[100] flex items-start justify-center bg-canvas/70 px-4 pt-[15vh] backdrop-blur-sm" onMouseDown={() => onClose()}>
       <div
         role="dialog"
         aria-label="Command palette"
