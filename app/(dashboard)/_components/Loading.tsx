@@ -1,9 +1,5 @@
-import { Spinner } from '@/components/ui';
+import { SkeletonRows } from './Skeleton';
 
-export function Loading({ label = 'Loading…' }: { label?: string }) {
-  return (
-    <div className="flex items-center justify-center gap-2 py-12 text-sm text-fg-muted">
-      <Spinner size="sm" /> {label}
-    </div>
-  );
+export function Loading({ rows = 4 }: { label?: string; rows?: number }) {
+  return <SkeletonRows rows={rows} className="py-2" />;
 }

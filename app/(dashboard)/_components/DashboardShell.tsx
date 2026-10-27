@@ -6,6 +6,7 @@ import type { NavItem } from '@/components/ui';
 import { useOpenRequests } from '@/lib/hooks/useRequests';
 import { useAgents } from '@/lib/hooks/useAgents';
 import { needsTerminalAttention } from '@/lib/types';
+import { CommandPalette } from './CommandPalette';
 
 export function DashboardShell({
   user,
@@ -62,13 +63,23 @@ export function DashboardShell({
       activeHref={pathname}
       user={user}
       userMenu={
+        <>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event('agentspace:palette'))}
+            className="mr-2 rounded-md border border-line px-2 py-1 text-xs text-fg-muted hover:bg-surface-2"
+          >
+            Search <kbd className="ml-1 font-mono text-fg-subtle">⌘K</kbd>
+          </button>
         <form action="/auth/signout" method="post">
           <Button type="submit" variant="ghost" size="sm">
             Sign out
           </Button>
         </form>
+        </>
       }
     >
+      <CommandPalette />
       {children}
     </AppShell>
   );
