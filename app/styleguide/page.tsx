@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Inbox, Plus } from 'lucide-react';
+import { Activity, GitPullRequest, Inbox, Plus, Radio, Timer } from 'lucide-react';
 import type {
   AgentEvent, AgentStatus, AgentWithProject, GithubEvent, Project, ProjectToken,
   RequestWithContext, TeamMemberWithProfile,
@@ -12,7 +12,8 @@ import {
   AgentCard, AgentGroup, AppShell, AttentionCard, Avatar, Badge, Button, Callout, CodeBlock, CopyField,
   EmptyState, EventTimeline, GithubEventItem, Input, LoginCard, MemberRow, PageHeader, ProjectCard,
   RelativeTime, RequestCard, SegmentedControl, Select, Spinner, StatTile, StatusBadge, StatusDot,
-  Textarea, TokenRow, Card,
+  Textarea, TokenRow, Card, StatCard, Skeleton, AgentCardSkeleton, RequestCardSkeleton, ErrorState,
+  DataTable, AvatarStack, Tabs, Breadcrumbs, CommandPaletteTrigger,
 } from '@/components/ui';
 import type { NavItem } from '@/components/ui';
 
@@ -296,14 +297,62 @@ export default function StyleguidePage() {
           </div>
         </Section>
 
-        <Section title="App shell" note="Sidebar on md and up; top bar with drawer on phones.">
-          <div className="h-[28rem] overflow-hidden rounded-md border border-line">
-            <div className="h-full origin-top-left overflow-auto [transform:translateZ(0)]">
-              <AppShell nav={NAV} activeHref="/inbox" user={{ name: 'Ana Reyes', email: 'ana@acme.dev' }} userMenu={<Button size="sm" variant="secondary" className="w-full">Sign out</Button>}>
-                <PageHeader title="Inbox" description="Agents waiting on you." breadcrumb={[{ href: '/', label: 'Overview' }]} />
-                <RequestCard request={m.requests.open} onAnswer={noop} />
-              </AppShell>
-            </div>
+        <Section title="Enterprise additions" note="KPI cards, tabs, tables, skeletons, error states, breadcrumbs, avatar stacks.">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard label="Active agents" value={12} tone="running" icon={<Activity />} delta={3} deltaLabel="vs last hour" spark={[3, 5, 4, 7, 6, 9, 12]} />
+            <StatCard label="Waiting on human" value={2} tone="waiting" icon={<Radio />} hint="oldest 4m" />
+            <StatCard label="Events / hour" value="1,284" tone="idle" icon={<Timer />} delta={-8} deltaLabel="vs yesterday" spark={[9, 8, 9, 6, 7, 5, 6]} />
+            <StatCard label="Open PRs" value={5} icon={<GitPullRequest />} />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><StatCard label="Loading" value={0} loading /></div>
+          <Tabs value={seg} onChange={setSeg} tabs={[{ value: 'active', label: 'Agents', count: 6 }, { value: 'needs', label: 'Requests', count: 2, attention: true }, { value: 'all', label: 'Activity' }]} />
+          <Breadcrumbs items={[{ href: '/projects', label: 'Projects' }, { href: '/projects/p1', label: 'billing-api' }, { label: 'coder-a' }]} />
+          <Row label="CommandPaletteTrigger / AvatarStack">
+            <CommandPaletteTrigger />
+            <AvatarStack people={[{ name: 'Ana Reyes' }, { name: 'Ben Kowalski' }, { name: 'Cy Wu' }, { name: 'Di Park' }, { name: 'Ed Moss' }, { name: 'Fay Lin' }]} max={4} />
+          </Row>
+          <DataTable
+            caption="Agents"
+            rows={m.agents}
+            rowKey={(a) => a.id}
+            rowHref={(a) => `/agents/${a.id}`}
+            columns={[
+              { key: 'name', header: 'Agent', cell: (a) => <span className="font-medium">{a.name ?? a.session_id.slice(0, 8)}</span> },
+              { key: 'status', header: 'Status', cell: (a) => <StatusBadge status={a.status} /> },
+              { key: 'human', header: 'Human', hideOnMobile: true, cell: (a) => a.human ?? '-' },
+              { key: 'events', header: 'Events', align: 'right', mono: true, cell: (a) => a.event_count },
+              { key: 'last', header: 'Last seen', align: 'right', mono: true, cell: (a) => <RelativeTime iso={a.last_event_at} /> },
+            ]}
+          />
+          <div className="grid gap-4 md:grid-cols-2">
+            <DataTable rows={[] as typeof m.agents} rowKey={(a) => a.id} columns={[]} emptyTitle="No agents yet" emptyDescription="Connect a project to see agents." />
+            <DataTable rows={[] as typeof m.agents} rowKey={(a) => a.id} columns={[]} loading />
+            <DataTable rows={[] as typeof m.agents} rowKey={(a) => a.id} columns={[]} error="Could not load agents." onRetry={noop} />
+            <ErrorState title="Realtime disconnected" description="Reconnecting automatically." onRetry={noop} />
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            <AgentCardSkeleton /><AgentCardSkeleton /><RequestCardSkeleton />
+          </div>
+          <Skeleton className="h-4 w-48" />
+        </Section>
+
+        <Section title="App shell" note="Collapsible sidebar with workspace switcher, projects, Inbox badge; top bar with breadcrumbs, command palette trigger, user menu. Drawer on phones.">
+          <div className="h-[34rem] overflow-hidden rounded-md border border-line">
+            <AppShell
+              contained={false}
+              nav={NAV}
+              activeHref="/inbox"
+              user={{ name: 'Ana Reyes', email: 'ana@acme.dev' }}
+              workspace={{ id: 'w1', name: "Ana's team" }}
+              workspaces={[{ id: 'w1', name: "Ana's team" }, { id: 'w2', name: 'Acme' }]}
+              projects={[{ href: '/projects/p1', label: 'billing-api', attention: 2 }, { href: '/projects/p2', label: 'marketing-site', running: 3 }, { href: '/projects/p3', label: 'infra' }]}
+              breadcrumb={[{ href: '/', label: 'Overview' }, { label: 'Inbox' }]}
+              onOpenPalette={noop}
+              userMenu={<Button size="sm" variant="secondary" className="w-full">Sign out</Button>}
+            >
+              <PageHeader title="Inbox" description="Agents waiting on you." />
+              <RequestCard request={m.requests.open} onAnswer={noop} />
+            </AppShell>
           </div>
         </Section>
       </div>

@@ -1,11 +1,12 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AttentionCard, Callout, Card, EmptyState, PageHeader, RequestCard } from '@/components/ui';
 import { useAgents } from '@/lib/hooks/useAgents';
 import { useOpenRequests, useRequests } from '@/lib/hooks/useRequests';
 import { needsTerminalAttention } from '@/lib/types';
 import { Loading } from '../_components/Loading';
+import { SkeletonCards } from '../_components/Skeleton';
 import { useRequestActions } from '../_components/useRequestActions';
 
 export default function InboxPage() {
@@ -15,26 +16,44 @@ export default function InboxPage() {
   const [showResolved, setShowResolved] = useState(false);
   const actions = useRequestActions();
   const attention = agents.filter(needsTerminalAttention);
+  const visible = requests.filter((r) => !actions.hidden.has(r.id));
+
+  // Shortcut: press "r" (outside inputs) to focus the first answer box.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.key.toLowerCase() !== 'r') return;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      const box = document.querySelector<HTMLTextAreaElement>('[id^="req-"] textarea');
+      if (box) {
+        e.preventDefault();
+        box.focus();
+        box.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Inbox"
-        description="Requests from agents waiting for a human. Answers go straight back to the agent."
+        description="Requests from agents waiting for a human. Press R to jump to the first answer box."
       />
 
       {error ? (
         <Callout tone="danger" title="Could not load requests">{error}</Callout>
       ) : loading ? (
-        <Loading label="Loading requests…" />
-      ) : requests.length === 0 ? (
+        <SkeletonCards count={3} />
+      ) : visible.length === 0 ? (
         <EmptyState
           title="Inbox zero"
           description="No agent is waiting on you. New requests appear here the moment they are asked."
         />
       ) : (
         <div className="space-y-4">
-          {requests.map((r) => (
+          {visible.map((r) => (
             <div key={r.id} id={`req-${r.id}`} className="scroll-mt-20">
               <RequestCard
                 request={r}
