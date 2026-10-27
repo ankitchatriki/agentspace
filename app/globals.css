@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Agentspace tokens. RGB triplets so Tailwind can apply alpha.
+   Light values in :root, dark (default direction) under prefers-color-scheme.
+   data-theme="light" | "dark" on <html> forces a theme. */
+:root {
+  --canvas: 243 241 235;
+  --surface: 251 250 246;
+  --surface-2: 234 231 222;
+  --line: 214 210 198;
+  --fg: 24 24 22;
+  --fg-muted: 82 81 74;
+  --fg-subtle: 120 118 108;
+  --accent: 24 24 22;
+  --accent-fg: 243 241 235;
+  --status-running: 14 128 78;
+  --status-waiting: 196 108 0;
+  --status-idle: 49 102 178;
+  --status-ended: 113 113 106;
+  --danger: 190 38 38;
+  --success: 14 128 78;
+  --warning: 176 98 0;
+  --info: 49 102 178;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --canvas: 14 15 14;
+    --surface: 22 24 22;
+    --surface-2: 33 36 33;
+    --line: 48 52 47;
+    --fg: 236 233 222;
+    --fg-muted: 166 164 152;
+    --fg-subtle: 116 115 105;
+    --accent: 236 230 210;
+    --accent-fg: 20 21 19;
+    --status-running: 82 214 132;
+    --status-waiting: 255 176 32;
+    --status-idle: 120 170 240;
+    --status-ended: 120 120 112;
+    --danger: 255 107 99;
+    --success: 82 214 132;
+    --warning: 255 176 32;
+    --info: 120 170 240;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --canvas: 14 15 14;
+  --surface: 22 24 22;
+  --surface-2: 33 36 33;
+  --line: 48 52 47;
+  --fg: 236 233 222;
+  --fg-muted: 166 164 152;
+  --fg-subtle: 116 115 105;
+  --accent: 236 230 210;
+  --accent-fg: 20 21 19;
+  --status-running: 82 214 132;
+  --status-waiting: 255 176 32;
+  --status-idle: 120 170 240;
+  --status-ended: 120 120 112;
+  --danger: 255 107 99;
+  --success: 82 214 132;
+  --warning: 255 176 32;
+  --info: 120 170 240;
+  color-scheme: dark;
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { font-feature-settings: 'tnum' 1, 'cv11' 1; }
+  ::selection { background: rgb(var(--status-waiting) / 0.35); }
+  :focus-visible { outline: 2px solid rgb(var(--status-waiting)); outline-offset: 2px; }
+  * { scrollbar-width: thin; scrollbar-color: rgb(var(--line)) transparent; }
+}
+
+@layer components {
+  /* small uppercase instrument-panel label */
+  .label-caps {
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-fg-subtle;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ring-out, .animate-beacon { animation: none !important; }
+}
